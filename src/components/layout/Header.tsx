@@ -1,13 +1,28 @@
+import { useRef } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useHeaderScrollTransition } from '../../hooks/useHeaderScrollTransition';
 
 interface HeaderProps {
   isMenuOpen: boolean;
   onToggleMenu: () => void;
+  isGsapReady: boolean;
+  isIntroActive: boolean;
 }
 
-export function Header({ isMenuOpen, onToggleMenu }: HeaderProps) {
+export function Header({ isMenuOpen, onToggleMenu, isGsapReady, isIntroActive }: HeaderProps) {
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  useHeaderScrollTransition({
+    isGsapReady,
+    isIntroActive,
+    headerRef,
+  });
+
   return (
-    <nav className="fixed top-0 w-full z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md">
+    <nav
+      ref={headerRef}
+      className="fixed top-0 w-full z-50 border-b border-transparent bg-transparent will-change-[background-color,backdrop-filter,border-color,box-shadow]"
+    >
       <div className="max-w-[1400px] mx-auto px-6 h-20 flex justify-between items-center">
         <div className="nav-item text-2xl font-serif tracking-tight text-gray-900 cursor-pointer">
           FENIX<span className="text-[#A08870] font-light">360</span>

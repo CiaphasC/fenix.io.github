@@ -44,7 +44,12 @@ export function App() {
           <PremiumBackground />
         </Suspense>
 
-        <Header isMenuOpen={isMenuOpen} onToggleMenu={() => setIsMenuOpen((prev) => !prev)} />
+        <Header
+          isMenuOpen={isMenuOpen}
+          onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+          isGsapReady={isGsapReady}
+          isIntroActive={isIntroActive}
+        />
 
         <main>
           <HeroSection isGsapReady={isGsapReady} />

@@ -71,39 +71,6 @@ export function PremiumBackground() {
     const particles = new THREE.Points(geometry, material);
     scene.add(particles);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
-    scene.add(ambientLight);
-
-    const keyLight = new THREE.DirectionalLight(0xffffff, 0.7);
-    keyLight.position.set(30, 40, 80);
-    scene.add(keyLight);
-
-    const polyhedronGroup = new THREE.Group();
-    polyhedronGroup.position.set(26, -6, -12);
-
-    const icosahedronGeometry = new THREE.IcosahedronGeometry(14, 0);
-    const icosahedronMaterial = new THREE.MeshStandardMaterial({
-      color: 0xa08870,
-      roughness: 0.45,
-      metalness: 0.15,
-      flatShading: true,
-      transparent: true,
-      opacity: 0.42,
-    });
-    const icosahedronMesh = new THREE.Mesh(icosahedronGeometry, icosahedronMaterial);
-    polyhedronGroup.add(icosahedronMesh);
-
-    const wireframeGeometry = new THREE.EdgesGeometry(icosahedronGeometry);
-    const wireframeMaterial = new THREE.LineBasicMaterial({
-      color: 0x8f7560,
-      transparent: true,
-      opacity: 0.38,
-    });
-    const wireframe = new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
-    polyhedronGroup.add(wireframe);
-
-    scene.add(polyhedronGroup);
-
     let mouseX = 0;
     let mouseY = 0;
 
@@ -158,13 +125,6 @@ export function PremiumBackground() {
       particles.geometry.attributes.position.needsUpdate = true;
       particles.rotation.y = elapsedTime * 0.05;
 
-      icosahedronMesh.rotation.x = elapsedTime * 0.22;
-      icosahedronMesh.rotation.y = elapsedTime * 0.3;
-      wireframe.rotation.x = icosahedronMesh.rotation.x;
-      wireframe.rotation.y = icosahedronMesh.rotation.y;
-      polyhedronGroup.position.y = -6 + Math.sin(elapsedTime * 0.7) * 2.2;
-      polyhedronGroup.position.x = 26 + mouseX * 3.5;
-
       renderer.render(scene, camera);
     };
 
@@ -190,10 +150,6 @@ export function PremiumBackground() {
       geometry.dispose();
       material.dispose();
       texture.dispose();
-      icosahedronGeometry.dispose();
-      icosahedronMaterial.dispose();
-      wireframeGeometry.dispose();
-      wireframeMaterial.dispose();
       renderer.dispose();
     };
   }, []);
