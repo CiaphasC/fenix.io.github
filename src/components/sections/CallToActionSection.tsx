@@ -3,11 +3,11 @@ import { Reveal } from '../animations/Reveal';
 
 export function CallToActionSection() {
   return (
-    <section className="py-32 px-6 bg-gray-50 border-t border-gray-100 text-center relative z-10">
+    <section className="py-24 md:py-32 px-4 sm:px-6 bg-gray-50 border-t border-gray-100 text-center relative z-10">
       <div className="max-w-3xl mx-auto">
         <Reveal>
           <div className="w-px h-20 bg-gradient-to-b from-transparent via-[#A08870] to-transparent mx-auto mb-12 opacity-50"></div>
-          <p className="text-xl md:text-3xl font-serif text-gray-800 leading-relaxed mb-12 italic">
+          <p className="text-lg sm:text-xl md:text-3xl font-serif text-gray-800 leading-relaxed mb-10 sm:mb-12 italic">
             "Liderar es asumir responsabilidad antes que reconocimiento. Es tomar decisiones difíciles hoy para
             construir el futuro que quieres liderar mañana."
           </p>

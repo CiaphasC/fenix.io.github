@@ -25,6 +25,9 @@ export function App() {
   const handleCurtainComplete = useCallback(() => {
     setIsIntroActive(false);
   }, []);
+  const closeMenu = useCallback(() => {
+    setIsMenuOpen(false);
+  }, []);
 
   useMainIntroAnimation({
     isGsapReady,
@@ -47,6 +50,7 @@ export function App() {
         <Header
           isMenuOpen={isMenuOpen}
           onToggleMenu={() => setIsMenuOpen((prev) => !prev)}
+          onCloseMenu={closeMenu}
           isGsapReady={isGsapReady}
           isIntroActive={isIntroActive}
         />

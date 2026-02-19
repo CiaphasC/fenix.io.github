@@ -5,72 +5,151 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 interface UseHeaderScrollTransitionParams {
   isGsapReady: boolean;
   isIntroActive: boolean;
+  isMenuOpen: boolean;
   headerRef: MutableRefObject<HTMLElement | null>;
+  shellRef: MutableRefObject<HTMLDivElement | null>;
+  brandRef: MutableRefObject<HTMLDivElement | null>;
+  ctaRef: MutableRefObject<HTMLButtonElement | null>;
 }
 
 /**
- * Mantiene el header visualmente integrado al hero en la parte superior.
- * Al superar un umbral de scroll, aparece una barra blanca con transición GSAP.
+ * Replica el comportamiento del header del prototipo:
+ * integrado al hero al inicio (más aire y marca destacada) y
+ * compacto con barra blanca al hacer scroll.
  */
 export function useHeaderScrollTransition({
   isGsapReady,
   isIntroActive,
+  isMenuOpen,
   headerRef,
+  shellRef,
+  brandRef,
+  ctaRef,
 }: UseHeaderScrollTransitionParams): void {
-  const hasSolidBarRef = useRef(false);
+  const isCompactRef = useRef<boolean | null>(null);
 
   useLayoutEffect(() => {
-    if (!isGsapReady || !headerRef.current || isIntroActive) {
+    if (
+      !isGsapReady ||
+      !headerRef.current ||
+      !shellRef.current ||
+      !brandRef.current ||
+      isIntroActive
+    ) {
       return;
     }
 
     const headerElement = headerRef.current;
-    let activeTween: gsap.core.Tween | null = null;
+    const shellElement = shellRef.current;
+    const brandElement = brandRef.current;
+    const ctaElement = ctaRef.current;
+    let activeTimeline: gsap.core.Timeline | null = null;
+    let resizeTimeoutId: number | null = null;
 
-    const animateHeaderBar = (showBar: boolean) => {
-      if (showBar === hasSolidBarRef.current) {
+    const getResponsiveTokens = () => {
+      const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+
+      return {
+        expandedPaddingY: isDesktop ? 32 : 18,
+        compactPaddingY: isDesktop ? 12 : 10,
+        expandedBrandScale: isDesktop ? 1.45 : 1.05,
+        compactBrandScale: isDesktop ? 0.9 : 0.95,
+      };
+    };
+
+    const applyState = (isCompact: boolean, immediate = false) => {
+      if (isCompactRef.current === isCompact && !immediate) {
         return;
       }
 
-      hasSolidBarRef.current = showBar;
-      activeTween?.kill();
+      isCompactRef.current = isCompact;
+      activeTimeline?.kill();
+      const tokens = getResponsiveTokens();
 
-      activeTween = gsap.to(headerElement, {
-        backgroundColor: showBar ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0)',
-        borderColor: showBar ? 'rgba(243,244,246,1)' : 'rgba(243,244,246,0)',
-        backdropFilter: showBar ? 'blur(12px)' : 'blur(0px)',
-        WebkitBackdropFilter: showBar ? 'blur(12px)' : 'blur(0px)',
-        boxShadow: showBar ? '0 6px 20px rgba(17, 24, 39, 0.06)' : '0 0 0 rgba(17, 24, 39, 0)',
-        duration: showBar ? 0.55 : 0.4,
-        ease: showBar ? 'power3.out' : 'power2.inOut',
+      const containerVars = {
+        backgroundColor: isCompact ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0)',
+        borderColor: isCompact ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0)',
+        backdropFilter: isCompact ? 'blur(20px)' : 'blur(0px)',
+        WebkitBackdropFilter: isCompact ? 'blur(20px)' : 'blur(0px)',
+        boxShadow: isCompact ? '0 6px 20px rgba(17, 24, 39, 0.08)' : '0 0 0 rgba(17, 24, 39, 0)',
+      };
+
+      const shellVars = {
+        paddingTop: isCompact ? tokens.compactPaddingY : tokens.expandedPaddingY,
+        paddingBottom: isCompact ? tokens.compactPaddingY : tokens.expandedPaddingY,
+      };
+
+      const brandVars = {
+        scale: isCompact ? tokens.compactBrandScale : tokens.expandedBrandScale,
+      };
+
+      const ctaVars = {
+        backgroundColor: isCompact ? '#A08870' : '#111827',
+      };
+
+      if (immediate) {
+        gsap.set(headerElement, {
+          autoAlpha: 1,
+          y: 0,
+          pointerEvents: 'auto',
+          ...containerVars,
+        });
+        gsap.set(shellElement, shellVars);
+        gsap.set(brandElement, brandVars);
+        if (ctaElement) {
+          gsap.set(ctaElement, ctaVars);
+        }
+        return;
+      }
+
+      activeTimeline = gsap.timeline({
+        defaults: {
+          duration: isCompact ? 0.7 : 0.6,
+          ease: 'power3.out',
+        },
       });
+
+      activeTimeline
+        .to(headerElement, containerVars, 0)
+        .to(shellElement, shellVars, 0)
+        .to(brandElement, brandVars, 0);
+
+      if (ctaElement) {
+        activeTimeline.to(ctaElement, ctaVars, 0);
+      }
     };
 
-    gsap.set(headerElement, {
-      autoAlpha: 1,
-      y: 0,
-      backgroundColor: 'rgba(255,255,255,0)',
-      borderColor: 'rgba(243,244,246,0)',
-      backdropFilter: 'blur(0px)',
-      WebkitBackdropFilter: 'blur(0px)',
-      boxShadow: '0 0 0 rgba(17, 24, 39, 0)',
-      pointerEvents: 'auto',
-    });
-
-    animateHeaderBar(window.scrollY > 72);
+    applyState(window.scrollY > 50 || isMenuOpen, true);
 
     const scrollTrigger = ScrollTrigger.create({
       trigger: document.body,
       start: 0,
       end: () => ScrollTrigger.maxScroll(window) || 1,
       onUpdate: (self) => {
-        animateHeaderBar(self.scroll() > 72);
+        applyState(self.scroll() > 50 || isMenuOpen);
       },
     });
 
-    return () => {
-      activeTween?.kill();
-      scrollTrigger.kill();
+    const handleResize = () => {
+      if (resizeTimeoutId) {
+        window.clearTimeout(resizeTimeoutId);
+      }
+
+      resizeTimeoutId = window.setTimeout(() => {
+        const shouldCompact = (window.scrollY > 50 || isMenuOpen) && !isIntroActive;
+        applyState(shouldCompact, true);
+      }, 120);
     };
-  }, [headerRef, isGsapReady, isIntroActive]);
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      activeTimeline?.kill();
+      scrollTrigger.kill();
+      window.removeEventListener('resize', handleResize);
+      if (resizeTimeoutId) {
+        window.clearTimeout(resizeTimeoutId);
+      }
+    };
+  }, [brandRef, ctaRef, headerRef, isGsapReady, isIntroActive, isMenuOpen, shellRef]);
 }
