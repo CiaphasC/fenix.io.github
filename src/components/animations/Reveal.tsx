@@ -10,6 +10,7 @@ interface RevealProps {
   className?: string;
   direction?: RevealDirection;
   distance?: number;
+  replayOnScroll?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export function Reveal({
   className = '',
   direction = 'y',
   distance = 50,
+  replayOnScroll = true,
 }: RevealProps) {
   const elementRef = useRef<HTMLDivElement | null>(null);
   const isGsapReady = useGsapReady();
@@ -62,7 +64,8 @@ export function Reveal({
         scrollTrigger: {
           trigger: elementRef.current,
           start: 'top 85%',
-          toggleActions: 'play none none reverse',
+          toggleActions: replayOnScroll ? 'play none none reverse' : 'play none none none',
+          once: !replayOnScroll,
         },
       });
     });
@@ -70,7 +73,7 @@ export function Reveal({
     return () => {
       context.revert();
     };
-  }, [delay, direction, distance, isGsapReady]);
+  }, [delay, direction, distance, isGsapReady, replayOnScroll]);
 
   return (
     <div ref={elementRef} className={`${className} ${!isGsapReady ? 'opacity-0' : ''}`}>

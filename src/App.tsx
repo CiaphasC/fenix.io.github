@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useRef, useState } from 'react';
 import { CurtainOverlay } from './components/layout/CurtainOverlay';
 import { Footer } from './components/layout/Footer';
 import { Header } from './components/layout/Header';
@@ -10,6 +10,7 @@ import { GsapReadyProvider } from './context/GsapContext';
 import { services } from './data/services';
 import { useGsapSetup } from './hooks/useGsapSetup';
 import { useMainIntroAnimation } from './hooks/useMainIntroAnimation';
+import { useScrollLock } from './hooks/useScrollLock';
 
 const PremiumBackground = lazy(async () => {
   const module = await import('./components/background/PremiumBackground');
@@ -18,10 +19,19 @@ const PremiumBackground = lazy(async () => {
 
 export function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isIntroActive, setIsIntroActive] = useState(true);
   const mainRef = useRef<HTMLDivElement | null>(null);
   const isGsapReady = useGsapSetup();
+  const handleCurtainComplete = useCallback(() => {
+    setIsIntroActive(false);
+  }, []);
 
-  useMainIntroAnimation({ isGsapReady, mainRef });
+  useMainIntroAnimation({
+    isGsapReady,
+    mainRef,
+    onCurtainComplete: handleCurtainComplete,
+  });
+  useScrollLock(isIntroActive);
 
   return (
     <GsapReadyProvider ready={isGsapReady}>
@@ -29,7 +39,7 @@ export function App() {
         ref={mainRef}
         className="bg-white text-gray-900 font-sans min-h-screen selection:bg-[#E5D4C0] selection:text-gray-900 overflow-x-hidden"
       >
-        <CurtainOverlay />
+        <CurtainOverlay isActive={isIntroActive} />
         <Suspense fallback={null}>
           <PremiumBackground />
         </Suspense>
